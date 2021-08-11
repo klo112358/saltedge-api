@@ -310,6 +310,7 @@ export namespace Providers {
   export namespace list {
     export type Options = {
       from_id?: string
+      per_page?: number
       from_date?: string
       country_code?: string
       mode?: Attributes["mode"]
@@ -587,6 +588,7 @@ export namespace Consents {
   export namespace list {
     export type Options = {
       from_id?: string
+      per_page?: number
     }
     export type Response = ListResponse<Attributes>
   }
@@ -666,6 +668,7 @@ export namespace Attempts {
   export namespace list {
     export type Options = {
       from_id?: string
+      per_page?: number
     }
     export type Response = ListResponse<Attributes>
   }
@@ -789,6 +792,7 @@ export namespace Accounts {
   export namespace list {
     export type Options = {
       from_id?: string
+      per_page?: number
     }
     export type Response = ListResponse<Attributes>
   }
@@ -855,6 +859,7 @@ export namespace Transactions {
     export type Options = {
       account_id?: string
       from_id?: string
+      per_page?: number
     }
     export type Response = ListResponse<Attributes>
   }
@@ -863,6 +868,7 @@ export namespace Transactions {
     export type Options = {
       account_id?: string
       from_id?: string
+      per_page?: number
     }
     export type Response = ListResponse<Attributes>
   }
@@ -871,6 +877,7 @@ export namespace Transactions {
     export type Options = {
       account_id?: string
       from_id?: string
+      per_page?: number
     }
     export type Response = ListResponse<Attributes>
   }
