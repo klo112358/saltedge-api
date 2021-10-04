@@ -1,5 +1,9 @@
 import * as base from "./base"
 
+type ConnectionSecret = {
+  connection_secret: string
+}
+
 export class App extends base.Base {
   readonly Countries: Countries
   readonly Providers: Providers
@@ -14,8 +18,7 @@ export class App extends base.Base {
 
   constructor(options?: Options) {
     super(options)
-    this.requester.customerSecret = options?.customerSecret
-    this.requester.connectionSecret = options?.connectionSecret
+    this.requester.customer_secret = options?.customer_secret
 
     this.Countries = new Countries(this.requester)
     this.Providers = new Providers(this.requester)
@@ -29,26 +32,18 @@ export class App extends base.Base {
     this.Transactions = new Transactions(this.requester)
   }
 
-  get customerSecret() {
-    return this.requester.customerSecret
+  get customer_secret() {
+    return this.requester.customer_secret
   }
 
-  set customerSecret(s: string | undefined) {
-    this.requester.customerSecret = s
-  }
-
-  get connectionSecret() {
-    return this.requester.connectionSecret
-  }
-
-  set connectionSecret(s: string | undefined) {
-    this.requester.connectionSecret = s
+  set customer_secret(s: string | undefined) {
+    this.requester.customer_secret = s
   }
 }
 
 export interface Options extends base.Options {
-  readonly customerSecret?: string
-  readonly connectionSecret?: string
+  readonly customer_secret?: string
+  readonly connection_secret?: string
 }
 
 export namespace Countries {
@@ -134,11 +129,13 @@ export namespace ConnectSessions {
     export type Response = base.ConnectSessions.create.Response
   }
   export namespace reconnect {
-    export type Options = base.ConnectSessions.reconnect.Options
+    export type Options = base.ConnectSessions.reconnect.Options &
+      ConnectionSecret
     export type Response = base.ConnectSessions.reconnect.Response
   }
   export namespace refresh {
-    export type Options = base.ConnectSessions.refresh.Options
+    export type Options = base.ConnectSessions.refresh.Options &
+      ConnectionSecret
     export type Response = base.ConnectSessions.refresh.Response
   }
 }
@@ -159,7 +156,6 @@ export class ConnectSessions {
   async reconnect(
     options: ConnectSessions.reconnect.Options,
   ): Promise<ConnectSessions.reconnect.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.create({
       url: "/connect_sessions/reconnect",
@@ -170,7 +166,6 @@ export class ConnectSessions {
   async refresh(
     options: ConnectSessions.refresh.Options,
   ): Promise<ConnectSessions.refresh.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.create({
       url: "/connect_sessions/refresh",
@@ -186,11 +181,13 @@ export namespace OAuthProviders {
     export type Response = base.OAuthProviders.create.Response
   }
   export namespace reconnect {
-    export type Options = base.OAuthProviders.reconnect.Options
+    export type Options = base.OAuthProviders.reconnect.Options &
+      ConnectionSecret
     export type Response = base.OAuthProviders.reconnect.Response
   }
   export namespace authorize {
-    export type Options = base.OAuthProviders.authorize.Options
+    export type Options = base.OAuthProviders.authorize.Options &
+      ConnectionSecret
     export type Response = base.OAuthProviders.authorize.Response
   }
 }
@@ -211,7 +208,6 @@ export class OAuthProviders {
   async reconnect(
     options: OAuthProviders.reconnect.Options,
   ): Promise<OAuthProviders.reconnect.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.create({
       url: "/oauth_providers/reconnect",
@@ -222,7 +218,6 @@ export class OAuthProviders {
   async authorize(
     options: OAuthProviders.authorize.Options,
   ): Promise<OAuthProviders.authorize.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.put({
       url: "/oauth_providers/authorize",
@@ -234,7 +229,7 @@ export class OAuthProviders {
 export namespace Connections {
   export type Attributes = base.Connections.Attributes
   export namespace show {
-    export type Options = base.Connections.show.Options
+    export type Options = ConnectionSecret
     export type Response = base.Connections.show.Response
   }
   export namespace create {
@@ -242,23 +237,24 @@ export namespace Connections {
     export type Response = base.Connections.create.Response
   }
   export namespace reconnect {
-    export type Options = base.Connections.reconnect.Options
+    export type Options = base.Connections.reconnect.Options & ConnectionSecret
     export type Response = base.Connections.reconnect.Response
   }
   export namespace interactive {
-    export type Options = base.Connections.interactive.Options
+    export type Options = base.Connections.interactive.Options &
+      ConnectionSecret
     export type Response = base.Connections.interactive.Response
   }
   export namespace refresh {
-    export type Options = base.Connections.refresh.Options
+    export type Options = base.Connections.refresh.Options & ConnectionSecret
     export type Response = base.Connections.refresh.Response
   }
   export namespace update {
-    export type Options = base.Connections.update.Options
+    export type Options = base.Connections.update.Options & ConnectionSecret
     export type Response = base.Connections.update.Response
   }
   export namespace remove {
-    export type Options = base.Connections.remove.Options
+    export type Options = ConnectionSecret
     export type Response = base.Connections.remove.Response
   }
 }
@@ -266,11 +262,13 @@ export namespace Connections {
 export class Connections {
   constructor(private readonly requester: base.Requester) {}
 
-  async show(): Promise<Connections.show.Response> {
-    this.requester.assertConnectionSecret()
+  async show(
+    options: Connections.show.Options,
+  ): Promise<Connections.show.Response> {
     this.requester.assertCustomerSecret()
     return this.requester.get({
       url: "/connections",
+      query: options,
     })
   }
 
@@ -279,7 +277,7 @@ export class Connections {
   ): Promise<Connections.create.Response> {
     this.requester.assertCustomerSecret()
     return this.requester.create({
-      url: "/connections",
+      url: "/connection",
       data: options,
     })
   }
@@ -287,10 +285,9 @@ export class Connections {
   async reconnect(
     options: Connections.reconnect.Options,
   ): Promise<Connections.reconnect.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.put({
-      url: "/connections/reconnect",
+      url: "/connection/reconnect",
       data: options,
     })
   }
@@ -298,10 +295,9 @@ export class Connections {
   async interactive(
     options: Connections.interactive.Options,
   ): Promise<Connections.interactive.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.put({
-      url: "/connections/interactive",
+      url: "/connection/interactive",
       data: options,
     })
   }
@@ -309,10 +305,9 @@ export class Connections {
   async refresh(
     options: Connections.refresh.Options,
   ): Promise<Connections.refresh.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.put({
-      url: "/connections/refresh",
+      url: "/connection/refresh",
       data: options,
     })
   }
@@ -320,20 +315,21 @@ export class Connections {
   async update(
     options: Connections.update.Options,
   ): Promise<Connections.update.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.put({
-      url: "/connections",
+      url: "/connection",
       data: options,
     })
   }
 
-  async remove(): Promise<Connections.remove.Response> {
-    this.requester.assertConnectionSecret()
+  async remove(
+    options: Connections.remove.Options,
+  ): Promise<Connections.remove.Response> {
     this.requester.assertCustomerSecret()
     return this.requester.request({
       method: "DELETE",
-      url: "/connections",
+      url: "/connection",
+      query: options,
     })
   }
 }
@@ -341,15 +337,15 @@ export class Connections {
 export namespace Consents {
   export type Attributes = base.Consents.Attributes
   export namespace list {
-    export type Options = base.Consents.list.Options
+    export type Options = base.Consents.list.Options & ConnectionSecret
     export type Response = base.Consents.list.Response
   }
   export namespace show {
-    export type Options = base.Consents.show.Options
+    export type Options = base.Consents.show.Options & ConnectionSecret
     export type Response = base.Consents.show.Response
   }
   export namespace revoke {
-    export type Options = base.Consents.revoke.Options
+    export type Options = base.Consents.revoke.Options & ConnectionSecret
     export type Response = base.Consents.revoke.Response
   }
 }
@@ -358,7 +354,6 @@ export class Consents {
   constructor(private readonly requester: base.Requester) {}
 
   async list(options: Consents.list.Options): Promise<Consents.list.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.list({
       url: "/consents",
@@ -367,7 +362,6 @@ export class Consents {
   }
 
   async show(options: Consents.show.Options): Promise<Consents.show.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.show({
       url: "/consents",
@@ -379,7 +373,6 @@ export class Consents {
   async revoke(
     options: Consents.revoke.Options,
   ): Promise<Consents.revoke.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.action({
       url: "/consents",
@@ -393,11 +386,11 @@ export class Consents {
 export namespace Attempts {
   export type Attributes = base.Attempts.Attributes
   export namespace list {
-    export type Options = base.Attempts.list.Options
+    export type Options = base.Attempts.list.Options & ConnectionSecret
     export type Response = base.Attempts.list.Response
   }
   export namespace show {
-    export type Options = base.Attempts.show.Options
+    export type Options = base.Attempts.show.Options & ConnectionSecret
     export type Response = base.Attempts.show.Response
   }
 }
@@ -406,7 +399,6 @@ export class Attempts {
   constructor(private readonly requester: base.Requester) {}
 
   async list(options: Attempts.list.Options): Promise<Attempts.list.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.list({
       url: "/attempts",
@@ -415,7 +407,6 @@ export class Attempts {
   }
 
   async show(options: Attempts.show.Options): Promise<Attempts.show.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.show({
       url: "/attempts",
@@ -428,7 +419,7 @@ export class Attempts {
 export namespace Accounts {
   export type Attributes = base.Accounts.Attributes
   export namespace list {
-    export type Options = base.Accounts.list.Options
+    export type Options = base.Accounts.list.Options & ConnectionSecret
     export type Response = base.Accounts.list.Response
   }
 }
@@ -437,7 +428,6 @@ export class Accounts {
   constructor(private readonly requester: base.Requester) {}
 
   async list(options: Accounts.list.Options): Promise<Accounts.list.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.list({
       url: "/accounts",
@@ -449,27 +439,29 @@ export class Accounts {
 export namespace Transactions {
   export type Attributes = base.Transactions.Attributes
   export namespace list {
-    export type Options = base.Transactions.list.Options
+    export type Options = base.Transactions.list.Options & ConnectionSecret
     export type Response = base.Transactions.list.Response
   }
   export namespace listDuplicates {
-    export type Options = base.Transactions.listDuplicates.Options
+    export type Options = base.Transactions.listDuplicates.Options &
+      ConnectionSecret
     export type Response = base.Transactions.listDuplicates.Response
   }
   export namespace pending {
-    export type Options = base.Transactions.pending.Options
+    export type Options = base.Transactions.pending.Options & ConnectionSecret
     export type Response = base.Transactions.pending.Response
   }
   export namespace duplicate {
-    export type Options = base.Transactions.duplicate.Options
+    export type Options = base.Transactions.duplicate.Options & ConnectionSecret
     export type Response = base.Transactions.duplicate.Response
   }
   export namespace unduplicate {
-    export type Options = base.Transactions.unduplicate.Options
+    export type Options = base.Transactions.unduplicate.Options &
+      ConnectionSecret
     export type Response = base.Transactions.unduplicate.Response
   }
   export namespace remove {
-    export type Options = base.Transactions.remove.Options
+    export type Options = base.Transactions.remove.Options & ConnectionSecret
     export type Response = base.Transactions.remove.Response
   }
 }
@@ -480,7 +472,6 @@ export class Transactions {
   async list(
     options: Transactions.list.Options,
   ): Promise<Transactions.list.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.list({
       url: "/transactions",
@@ -491,7 +482,6 @@ export class Transactions {
   async listDuplicates(
     options: Transactions.listDuplicates.Options,
   ): Promise<Transactions.listDuplicates.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.list({
       url: "/transactions/duplicates",
@@ -502,7 +492,6 @@ export class Transactions {
   async pending(
     options: Transactions.pending.Options,
   ): Promise<Transactions.pending.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.list({
       url: "/transactions/pending",
@@ -513,7 +502,6 @@ export class Transactions {
   async duplicate(
     options: Transactions.duplicate.Options,
   ): Promise<Transactions.duplicate.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.put({
       url: "/transactions/duplicate",
@@ -524,7 +512,6 @@ export class Transactions {
   async unduplicate(
     options: Transactions.unduplicate.Options,
   ): Promise<Transactions.unduplicate.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.put({
       url: "/transactions/unduplicate",
@@ -535,7 +522,6 @@ export class Transactions {
   async remove(
     options: Transactions.unduplicate.Options,
   ): Promise<Transactions.unduplicate.Response> {
-    this.requester.assertConnectionSecret()
     this.requester.assertCustomerSecret()
     return this.requester.request({
       method: "DELETE",

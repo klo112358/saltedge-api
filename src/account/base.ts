@@ -57,8 +57,7 @@ export interface ListResponse<T> {
 export class Requester {
   readonly appId: string
   readonly secret: string
-  customerSecret?: string
-  connectionSecret?: string
+  customer_secret?: string
 
   constructor(options?: Options) {
     const appId =
@@ -82,14 +81,8 @@ export class Requester {
   }
 
   assertCustomerSecret() {
-    if (!this.customerSecret) {
+    if (!this.customer_secret) {
       throw new Error("Please provide customer secret.")
-    }
-  }
-
-  assertConnectionSecret() {
-    if (!this.connectionSecret) {
-      throw new Error("Please provide connection secret.")
     }
   }
 
@@ -99,31 +92,44 @@ export class Requester {
     query?: Record<string, any>
     body?: any
   }) {
-    const { method, url, query, body } = options
+    const { method, url } = options
+    let { query, body } = options
+
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      "App-id": this.appId,
+      Secret: this.secret,
+    }
+
+    if (query?.connection_secret) {
+      headers["Connection-secret"] = query.connection_secret
+      query = omit(query, ["connection_secret"])
+    }
+
     const input =
       "https://www.saltedge.com/api/v5" +
       url +
       qs.stringify(query, { addQueryPrefix: true })
 
-    const headers: Record<string, string> = {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      "App-id": this.appId,
-      Secret: this.secret,
+    if (body) {
+      headers["Content-Type"] = "application/json"
+      if (body.connection_secret) {
+        headers["Connection-secret"] = body.connection_secret
+        body = omit(body, ["connection_secret"])
+      } else if (body.data && body.data.connection_secret) {
+        headers["Connection-secret"] = body.data.connection_secret
+        body = { ...body, data: omit(body.data, ["connection_secret"]) }
+      }
     }
 
-    if (this.customerSecret) {
-      headers["Customer-secret"] = this.customerSecret
-    }
-
-    if (this.connectionSecret) {
-      headers["Connection-secret"] = this.connectionSecret
+    if (this.customer_secret) {
+      headers["Customer-secret"] = this.customer_secret
     }
 
     const res = await fetch(input, {
       method,
       headers,
-      body: JSON.stringify(body),
+      body: body ? JSON.stringify(body) : undefined,
     })
 
     const json = await res.json()
@@ -325,7 +331,7 @@ export namespace Providers {
 
 export namespace Customers {
   export type Attributes = {
-    id: number
+    id: string
     identifier: string
     secret: string
     blocked_at?: string
@@ -453,10 +459,7 @@ export namespace OAuthProviders {
     export type Options = {
       query_string: string
     }
-    export type Response = {
-      country_code: string
-      // TODO:
-    }
+    export type Response = Connections.Attributes
   }
 }
 
@@ -471,10 +474,10 @@ export namespace Connections {
     customer_id: string
     created_at: string
     updated_at: string
-    last_success_at: string
+    last_success_at: string | null
     status: "active" | "inactive" | "disabled"
     country_code: string
-    next_refresh_possible_at?: string
+    next_refresh_possible_at: string | null
     store_credentials: boolean
     last_attempt: Attempts.Attributes
     show_consent_confirmation: boolean
@@ -644,10 +647,10 @@ export namespace Attempts {
     remote_ip: string
     exclude_accounts: string[]
     user_present: boolean
-    customer_last_logged_at: string
-    fail_at: string
-    fail_error_class: string
-    fail_message: string
+    customer_last_logged_at: string | null
+    fail_at: string | null
+    fail_error_class: string | null
+    fail_message: string | null
     fetch_scopes: FetchScope[]
     finished: boolean
     finished_recent: boolean
@@ -657,11 +660,11 @@ export namespace Attempts {
     locale: Locale
     partial: boolean
     store_credentials: boolean
-    success_at: string
+    success_at: string | null
     to_date: string
     updated_at: string
     show_consent_confirmation: boolean
-    include_natures: string[]
+    include_natures: string[] | null
     stages: Stage[]
   }
 
@@ -807,7 +810,7 @@ export namespace Transactions {
     amount: number
     currency_code: string
     description: string
-    category: TimeRanges
+    category: string
     duplicated: boolean
     account_id: string
     created_at: string

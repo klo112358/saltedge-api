@@ -109,6 +109,7 @@ export namespace Customers {
     export type Options = {
       identifier?: string
       from_id?: string
+      per_page?: number
     }
     export type Response = base.ListResponse<Attributes>
   }
@@ -305,6 +306,7 @@ export namespace Connections {
     export type Options = {
       customer_id: string
       from_id?: string
+      per_page?: number
     }
     export type Response = base.ListResponse<Attributes>
   }
