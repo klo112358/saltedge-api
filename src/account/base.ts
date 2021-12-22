@@ -1,5 +1,6 @@
 import fetch from "cross-fetch"
 import qs from "qs"
+import type NodeRSA from "node-rsa"
 
 import { SaltEdgeError } from "../error"
 import { omit } from "../util"
@@ -35,6 +36,7 @@ type Categorization = "none" | "personal" | "business"
 export interface Options {
   readonly appId?: string
   readonly secret?: string
+  readonly private_key?: string
 }
 
 export class Base {
@@ -57,6 +59,7 @@ export interface ListResponse<T> {
 export class Requester {
   readonly appId: string
   readonly secret: string
+  private_key: NodeRSA | null = null
   customer_secret?: string
 
   constructor(options?: Options) {
@@ -76,6 +79,7 @@ export class Requester {
         "Please provide the secret or set the environment variable SALTEDGE_SECRET.",
       )
     }
+
     this.appId = appId
     this.secret = secret
   }
@@ -120,17 +124,21 @@ export class Requester {
         headers["Connection-secret"] = body.data.connection_secret
         body = { ...body, data: omit(body.data, ["connection_secret"]) }
       }
+      body = JSON.stringify(body)
+    }
+
+    if (this.private_key) {
+      const expires_at = Math.floor(Date.now() / 1000) + 60
+      const pre_signature = `${expires_at}|${method}|${input}|${body || ""}`
+      headers["Expires-At"] = String(expires_at)
+      headers.Signature = this.private_key.sign(pre_signature, "base64")
     }
 
     if (this.customer_secret) {
       headers["Customer-secret"] = this.customer_secret
     }
 
-    const res = await fetch(input, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    })
+    const res = await fetch(input, { method, headers, body })
 
     const json = await res.json()
 

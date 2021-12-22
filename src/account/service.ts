@@ -1,4 +1,5 @@
 import * as base from "./base"
+import NodeRSA from "node-rsa"
 
 type CustomerId = {
   customer_id: string
@@ -23,6 +24,14 @@ export class Service extends base.Base {
   constructor(options?: Options) {
     super(options)
 
+    const private_key =
+      options?.private_key ||
+      (typeof process !== "undefined"
+        ? process.env.SALTEDGE_PRIVATE_KEY
+        : undefined)
+
+    this.requester.private_key = private_key ? new NodeRSA(private_key) : null
+
     this.Countries = new Countries(this.requester)
     this.Providers = new Providers(this.requester)
     this.Customers = new Customers(this.requester)
@@ -36,7 +45,9 @@ export class Service extends base.Base {
   }
 }
 
-export interface Options extends base.Options {}
+export interface Options extends base.Options {
+  private_key?: string
+}
 
 export namespace Countries {
   export namespace list {
@@ -101,7 +112,7 @@ export namespace Customers {
   }
   export namespace show {
     export type Options = {
-      customer_id: number
+      customer_id: string
     }
     export type Response = Attributes
   }
@@ -115,7 +126,7 @@ export namespace Customers {
   }
   export namespace remove {
     export type Options = {
-      customer_id: number
+      customer_id: string
     }
     export type Response = {
       deleted: boolean
@@ -124,7 +135,7 @@ export namespace Customers {
   }
   export namespace lock {
     export type Options = {
-      customer_id: number
+      customer_id: string
     }
     export type Response = {
       locked: boolean
@@ -133,7 +144,7 @@ export namespace Customers {
   }
   export namespace unlock {
     export type Options = {
-      customer_id: number
+      customer_id: string
     }
     export type Response = {
       unlocked: boolean

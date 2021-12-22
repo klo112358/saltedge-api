@@ -1,3 +1,3 @@
-export { account } from "./main"
-import * as SaltEdge from "./main"
+export { account } from "./server-main"
+import * as SaltEdge from "./server-main"
 export default SaltEdge

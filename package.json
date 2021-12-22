@@ -1,6 +1,6 @@
 {
   "name": "saltedge-api",
-  "version": "0.0.15",
+  "version": "0.0.17",
   "description": "Unofficial SDK for SaltEdge API.",
   "sideEffects": false,
   "types": "dist/index.d.ts",
@@ -26,6 +26,7 @@
   "dependencies": {
     "@types/qs": "^6.9.7",
     "cross-fetch": "^3.1.4",
+    "node-rsa": "^1.1.1",
     "qs": "^6.7.0"
   },
   "devDependencies": {
@@ -39,6 +40,7 @@
     "@types/chai-as-promised": "^7.1.4",
     "@types/chai-things": "0.0.35",
     "@types/mocha": "^9.0.0",
+    "@types/node-rsa": "^1.1.1",
     "@typescript-eslint/eslint-plugin": "^4.28.5",
     "@typescript-eslint/parser": "^4.28.5",
     "chai": "^4.3.4",

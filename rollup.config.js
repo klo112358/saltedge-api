@@ -19,11 +19,11 @@ export default [
       exports: "named",
       sourcemap: true,
     },
-    external: ["cross-fetch", "qs"],
+    external: ["cross-fetch", "qs", "node-rsa"],
     plugins: [typescript()],
   },
   {
-    input: "src/index.ts",
+    input: "src/client.ts",
     output: {
       file: "umd/saltedge-api.js",
       name: "SaltEdge",
@@ -51,7 +51,7 @@ export default [
     ],
   },
   {
-    input: "src/index.ts",
+    input: "src/client.ts",
     output: {
       file: "umd/saltedge-api.min.js",
       name: "SaltEdge",
