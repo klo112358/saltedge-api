@@ -30,7 +30,9 @@ export class Service extends base.Base {
         ? process.env.SALTEDGE_PRIVATE_KEY
         : undefined)
 
-    this.requester.private_key = private_key ? new NodeRSA(private_key) : null
+    ;(this.requester as any).private_key = private_key
+      ? new NodeRSA(private_key)
+      : null
 
     this.Countries = new Countries(this.requester)
     this.Providers = new Providers(this.requester)

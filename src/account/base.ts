@@ -59,7 +59,7 @@ export interface ListResponse<T> {
 export class Requester {
   readonly appId: string
   readonly secret: string
-  private_key: NodeRSA | null = null
+  private private_key: NodeRSA | null = null
   customer_secret?: string
 
   constructor(options?: Options) {
