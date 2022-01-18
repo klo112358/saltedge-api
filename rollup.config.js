@@ -25,6 +25,17 @@ export default [
   {
     input: "src/client.ts",
     output: {
+      dir: "dist",
+      format: "cjs",
+      exports: "named",
+      sourcemap: true,
+    },
+    external: ["cross-fetch", "qs"],
+    plugins: [typescript()],
+  },
+  {
+    input: "src/client.ts",
+    output: {
       file: "umd/saltedge-api.js",
       name: "SaltEdge",
       format: "umd",
